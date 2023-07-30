@@ -1,2 +1,4 @@
-# Yu-Tang-Lin.github.io
+# Narrative Visualization for COVID19
 https://yu-tang-lin.github.io/CS416-Narrative-Visualization/CS416-Narrative-Visualization/CS416-Narrative-Visualization-0
+
+This visualization project aims to showcase the timing and reasons behind the peaks of COVID-19 cases in the United States from 2021 to mid-2022. The initial page provides an overview of the COVID-19 cases to help the audience grasp the dataset. Pages 1 to 5 highlight five distinct waves of COVID-19, accompanied by annotations that illustrate the severity of each variant and its impact on the number of cases. On page 6, you can utilize the dropdown menu to compare COVID-19 cases and deaths. This visualization project not only presents the timeline and factors contributing to COVID-19 case peaks but also allows users to interactively analyze the relationship between COVID-19 cases and deaths using the provided dropdown menu.
