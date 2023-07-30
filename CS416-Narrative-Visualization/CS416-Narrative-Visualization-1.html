@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>COVID-19 Data Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
+    <style>
+        .line {
+            fill: none;
+            stroke: blue;
+            stroke-width: 2px;
+        }
+    </style>
+    <style>
+        body {
+            background-color: #F0F0F0;
+        }
+
+        .pagination a {
+            color: #333333;
+            background-color: #E0E0E0;
+            border: 1px solid #CCCCCC;
+            padding: 8px 16px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+
+        .pagination a.active {
+            background-color: #999999;
+            border: 1px solid #999999;
+        }
+
+        .pagination a.active2 {
+            background-color: #666666;
+            border: 1px solid #666666;
+        }
+    </style>
+</head>
+<body>
+    <h1>COVID-19 Daily Cases in United States of America</h1>
+
+    <div id="cases-chart"></div>
+
+    <script>
+        // Change date from string to Date 
+        var parseDate = d3.timeParse("%Y-%m-%d");
+        
+    
+        d3.csv('us-states_processed_sum.csv')
+            .then(function(data) {
+                var filteredData = data.filter(function(d) {
+                    return d.state === 'US';
+                });
+    
+                // Convert date strings to Date objects
+                filteredData.forEach(function(d) {
+                    d.date = parseDate(d.date);
+                });
+    
+                // Data Date and Case
+                var dates = filteredData.map(function(d) {
+                    return d.date;
+                });
+                var cases = filteredData.map(function(d) {
+                    return +d['daily cases'];
+                });
+
+    
+                // Margin, width, height
+                var margin = { top: 40, right: 30, bottom: 50, left: 60 };
+                var width = 1500 - margin.left - margin.right;
+                var height = 500 - margin.top - margin.bottom;
+    
+                
+                // SVG Chart
+                var svg = d3.select("#cases-chart")
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+                // Map X Y scale
+                var xCases = d3.scaleBand()
+                    .domain(dates)
+                    .range([0, width]);
+
+    
+                var yCases = d3.scaleLinear()
+                    .domain([0, d3.max(cases)])
+                    .range([height, 0]);
+                
+
+                // Annotations
+                svg.append("g")
+                    .attr("class", "annotation1");
+                
+             
+                // Define x and y scales
+                const xScale = d3.scaleTime()
+                    .domain(d3.extent(filteredData, d => d.date))
+                    .range([0, width]);
+
+    
+                // Line gradient
+                var gradient = svg.append("defs")
+                                    .append("linearGradient")
+                                    .attr("id", "line-gradient")
+                                    .attr("gradientTransform", "rotate(90)");
+
+                    gradient.append("stop")
+                    .attr("offset", "0%")
+                    .attr("stop-color", "red");
+
+                    gradient.append("stop")
+                    .attr("offset", "100%")
+                    .attr("stop-color", "blue");
+
+
+                // Plot case and date
+                var line = svg.append("path")
+                .datum(filteredData)
+                .attr("class", "line cases")
+                .attr("d", d3.line()
+                    .x(function(d) { return xCases(d.date) + xCases.bandwidth() / 2; })
+                    .y(function(d) { return yCases(d['daily cases']); })
+                )
+                .style("fill", "none")
+                .style("stroke", "url(#line-gradient)");
+
+                line
+                .attr("stroke-dasharray", function() { return this.getTotalLength() })
+                .attr("stroke-dashoffset", function() { return this.getTotalLength() })
+                .transition()
+                .duration(2000)
+                .ease(d3.easeLinear)
+                .attr("stroke-dashoffset", 0);
+    
+
+                // Append x and y axis
+                svg.append("g")
+                    .attr("transform", `translate(0, ${height})`)
+                    .transition()
+                    .duration(2000)
+                    .call(d3.axisBottom(xScale));
+    
+                svg.append("g")
+                    .transition()
+                    .duration(2000)
+                    .call(d3.axisLeft(yCases));
+
+
+                // Chart labels
+                svg.append("text")
+                    .attr("x", width / 2)
+                    .attr("y", height + margin.bottom)
+                    .attr("text-anchor", "middle")
+                    .text("Date");
+
+                svg.append("text")
+                    .attr("transform", "rotate(-90)")
+                    .attr("y", 0 - margin.left)
+                    .attr("x", 0 - (height / 2))
+                    .attr("dy", "1em")
+                    .style("text-anchor", "middle")
+                    .text("Cases");
+
+
+                const type = d3.annotationCalloutCircle
+
+                // Texts of the annotation
+                const annotation1 = [
+                {
+                    note: {
+                        title: "First Wave",
+                        label: "The first wave lead to overloaded healthcare systems, a high number of hospitalizations and deaths, and the implementation of lockdowns and social distancing.",
+                    },
+                    color: '#666C6F',
+                    x: 130,
+                    y: 400,
+                    dy: -100,
+                    dx: -1,
+                    subject: {
+                        radius: 10,
+                        radiusPadding: 5
+                    }   
+                }]
+
+
+                // SVG annotation on the chart
+                const makeAnnotations1 = d3.annotation()
+                    .type(type)
+                    .annotations(annotation1);
+
+                svg.selectAll(".annotation1")
+                    .append("g")
+                    //.attr('stroke', 'black')
+                    .style("font-size", 12)
+                    .call(makeAnnotations1);
+    
+    
+            })
+            .catch(function(error) {
+                console.log(error);
+            });
+            
+            
+    </script>
+<div class="pagination">
+    <a href="CS416-Narrative-Visualization-0.html">&laquo;</a>
+    <a href="CS416-Narrative-Visualization-0.html">Chart</a>
+    <a class="active" href="CS416-Narrative-Visualization-1.html">1</a>
+    <a href="CS416-Narrative-Visualization-2.html">2</a>
+    <a href="CS416-Narrative-Visualization-3.html">3</a>
+    <a href="CS416-Narrative-Visualization-4.html">4</a>
+    <a href="CS416-Narrative-Visualization-5.html">5</a>
+    <a href="CS416-Narrative-Visualization-6.html">6</a>
+    <a href="CS416-Narrative-Visualization-2.html">&raquo;</a>
+</div>
+</body>
+</html>
